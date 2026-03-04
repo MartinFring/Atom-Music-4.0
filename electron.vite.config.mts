@@ -1,0 +1,139 @@
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { defineConfig } from 'electron-vite';
+import builtinModules from 'builtin-modules';
+
+import Inspect from 'vite-plugin-inspect';
+import solidPlugin from 'vite-plugin-solid';
+import viteResolve from 'vite-plugin-resolve';
+
+import { withFilter, type UserConfig } from 'vite';
+
+import { pluginVirtualModuleGenerator } from './vite-plugins/plugin-importer.mjs';
+import pluginLoader from './vite-plugins/plugin-loader.mjs';
+import { i18nImporter } from './vite-plugins/i18n-importer.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const resolveAlias = {
+  '@': resolve(__dirname, './src'),
+  '@assets': resolve(__dirname, './assets'),
+};
+
+export default defineConfig(({ mode }) => ({
+  main: {
+    experimental: {
+      enableNativePlugin: true,
+    },
+    plugins: [
+      pluginLoader('backend'),
+      viteResolve({
+        'virtual:i18n': i18nImporter(),
+        'virtual:plugins': pluginVirtualModuleGenerator('main'),
+      }),
+      ...(mode === 'development'
+        ? [Inspect({ build: true, outputDir: join(__dirname, '.vite-inspect/backend') })]
+        : []),
+    ],
+    publicDir: 'assets',
+    define: {
+      '__dirname': 'import.meta.dirname',
+      '__filename': 'import.meta.filename',
+    },
+    build: {
+      lib: {
+        entry: 'src/index.ts',
+        formats: ['es'],
+      },
+      outDir: 'dist/main',
+      rolldownOptions: {
+        external: ['electron', 'custom-electron-prompt', '@jellybrick/mpris-service', ...builtinModules],
+        input: './src/index.ts',
+      },
+      sourcemap: mode === 'development' ? 'inline' : false,
+      minify: mode !== 'development',
+      cssMinify: mode !== 'development',
+    },
+    resolve: {
+      alias: resolveAlias,
+    },
+  } satisfies UserConfig,
+  preload: {
+    experimental: {
+      enableNativePlugin: true,
+    },
+    plugins: [
+      pluginLoader('preload'),
+      viteResolve({
+        'virtual:i18n': i18nImporter(),
+        'virtual:plugins': pluginVirtualModuleGenerator('preload'),
+      }),
+      ...(mode === 'development'
+        ? [Inspect({ build: true, outputDir: join(__dirname, '.vite-inspect/preload') })]
+        : []),
+    ],
+    build: {
+      lib: {
+        entry: 'src/preload.ts',
+        formats: ['cjs'],
+      },
+      outDir: 'dist/preload',
+      commonjsOptions: {
+        ignoreDynamicRequires: true,
+      },
+      rolldownOptions: {
+        external: ['electron', 'custom-electron-prompt', ...builtinModules],
+        input: './src/preload.ts',
+      },
+      sourcemap: mode === 'development' ? 'inline' : false,
+      minify: mode !== 'development',
+      cssMinify: mode !== 'development',
+    },
+    resolve: {
+      alias: resolveAlias,
+    },
+  } satisfies UserConfig,
+  renderer: {
+    experimental: {
+      enableNativePlugin: mode !== 'development',
+    },
+    plugins: [
+      pluginLoader('renderer'),
+      viteResolve({
+        'virtual:i18n': i18nImporter(),
+        'virtual:plugins': pluginVirtualModuleGenerator('renderer'),
+      }),
+      withFilter(solidPlugin(), {
+        load: { id: [/\.(tsx|jsx)$/, '/@solid-refresh'] },
+      }),
+      ...(mode === 'development'
+        ? [Inspect({ build: true, outputDir: join(__dirname, '.vite-inspect/renderer') })]
+        : []),
+    ],
+    root: './src/',
+    build: {
+      lib: {
+        entry: 'src/index.html',
+        formats: ['iife'],
+        name: 'renderer',
+      },
+      outDir: 'dist/renderer',
+      rolldownOptions: {
+        external: ['electron', ...builtinModules],
+        input: './src/index.html',
+      },
+      sourcemap: mode === 'development' ? 'inline' : false,
+      minify: mode !== 'development',
+      cssMinify: mode !== 'development',
+    },
+    resolve: {
+      alias: resolveAlias,
+    },
+    server: {
+      cors: {
+        origin: 'https://music.youtube.com',
+      },
+    },
+  } satisfies UserConfig,
+}));
