@@ -1,0 +1,9 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = https://github.com/IsSlashy/Atom-Music-4.0.git
+	tagOpt = --no-tags
+	fetch = +refs/*:refs/*
+	mirror = true

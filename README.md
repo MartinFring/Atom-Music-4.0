@@ -218,6 +218,52 @@ pnpm dist:mac   # Build for macOS
 pnpm dist:linux # Build for Linux
 ```
 
+### Arch Linux (AUR-style)
+
+#### Option 1: Using PKGBUILD (Recommended)
+Build and install using the provided PKGBUILD:
+```bash
+git clone https://github.com/IsSlashy/Atom-Music-4.0.git
+cd Atom-Music-4.0
+makepkg -si          # Build and install the package
+```
+The app will be installed to `/opt/youtube-music/` with a symlink at `/usr/bin/youtube-music`.
+
+#### Option 2: Using install-arch.sh
+For a quick manual install after building:
+```bash
+git clone https://github.com/IsSlashy/Atom-Music-4.0.git
+cd Atom-Music-4.0
+pnpm install
+pnpm dist:linux   # Build the Linux package
+sudo ./install-arch.sh
+```
+
+> **⚠️ Note**: If you previously installed using `install-arch.sh` and want to switch to the PKGBUILD method, remove the manual installation first to avoid conflicts:
+> ```bash
+> sudo rm -rf /opt/youtube-music /usr/bin/youtube-music /usr/share/applications/youtube-music.desktop /usr/share/pixmaps/youtube-music.png
+> ```
+
+### Uninstall
+
+#### If installed via PKGBUILD (pacman)
+```bash
+sudo pacman -R youtube-music
+```
+To also remove dependencies that are no longer needed:
+```bash
+sudo pacman -Rs youtube-music
+```
+
+#### If installed via install-arch.sh (manual)
+```bash
+sudo rm -rf /opt/youtube-music
+sudo rm /usr/bin/youtube-music
+sudo rm /usr/share/applications/youtube-music.desktop
+sudo rm /usr/share/pixmaps/youtube-music.png
+sudo update-desktop-database
+```
+
 ---
 
 ## Architecture
