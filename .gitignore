@@ -1,9 +1,5 @@
-node_modules
-/dist
-/pack
-.vscode/settings.json
-.idea
-
+# Dependencies
+node_modules/
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,11 +7,45 @@ node_modules
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-.vite-inspect
 
+# Build outputs
+dist/
+pack/
+.vite-inspect/
+
+# Package outputs (binary distributions)
+*.pkg.tar.zst
+*.pkg.tar.zst.sig
+*.AppImage
+*.snap
+*.deb
+*.rpm
+*.flatpak
+*.tar.gz
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+*.log
 
-# Temp build config files
+# Build configuration (temp files)
 electron.vite.config.*.mjs
 _build.ps1
 _start.ps1
+
+# Local build artifacts (makepkg)
+src/
+pkg/
+*.pkg.tar*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
